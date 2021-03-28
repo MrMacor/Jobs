@@ -57,6 +57,7 @@ import org.bukkit.event.player.PlayerJoinEvent;
 import org.bukkit.event.player.PlayerMoveEvent;
 import org.bukkit.event.player.PlayerQuitEvent;
 import org.bukkit.event.player.PlayerSwapHandItemsEvent;
+import org.bukkit.event.world.StructureGrowEvent;
 import org.bukkit.event.world.WorldLoadEvent;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.PlayerInventory;
@@ -137,8 +138,7 @@ public class JobsListener implements Listener {
 	}
 
 	if (Jobs.getSelectionManager().hasPlacedBoth(player)) {
-	    JobsAreaSelectionEvent jobsAreaSelectionEvent = new JobsAreaSelectionEvent(player, Jobs.getSelectionManager().getSelectionCuboid(player));
-	    plugin.getServer().getPluginManager().callEvent(jobsAreaSelectionEvent);
+	    plugin.getServer().getPluginManager().callEvent(new JobsAreaSelectionEvent(player, Jobs.getSelectionManager().getSelectionCuboid(player)));
 	}
     }
 
@@ -209,7 +209,8 @@ public class JobsListener implements Listener {
 	}
 
 	player.performCommand("jobs " + command + " " + CMIChatColor.stripColor(plugin.getComplement().getLine(sign, 2))
-		+ " " + CMIChatColor.stripColor(plugin.getComplement().getLine(sign, 3)));
+	+ " " + CMIChatColor.stripColor(plugin.getComplement()
+		.getLine(sign, 3)).replace(" ", "")); // Replace trailing spaces at 3rd line to parse command
     }
 
     @EventHandler(priority = EventPriority.LOW, ignoreCancelled = true)
@@ -313,8 +314,7 @@ public class JobsListener implements Listener {
 
 	if (CMIChatColor.stripColor(plugin.getComplement().getLine(event, 0))
 	    .equalsIgnoreCase(CMIChatColor.stripColor(Jobs.getLanguage().getMessage("signs.topline"))) && !CMIChatColor.stripColor(
-	    plugin.getComplement().getLine(event, 1))
-	    .equalsIgnoreCase("toplist"))
+	    plugin.getComplement().getLine(event, 1)).equalsIgnoreCase("toplist"))
 	    plugin.getComplement().setLine(event, 0, convert(Jobs.getLanguage().getMessage("signs.topline")));
 	else
 	    return;
@@ -327,8 +327,9 @@ public class JobsListener implements Listener {
 
 	String command = CMIChatColor.stripColor(plugin.getComplement().getLine(event, 1)).toLowerCase();
 	for (String key : Jobs.getLanguageManager().signKeys) {
-	    if (command.equalsIgnoreCase(CMIChatColor.stripColor(Jobs.getLanguage().getMessage("signs.secondline." + key)))) {
-		plugin.getComplement().setLine(event, 1, convert(Jobs.getLanguage().getMessage("signs.secondline." + key)));
+	    String secondLine = Jobs.getLanguage().getMessage("signs.secondline." + key);
+	    if (command.equalsIgnoreCase(CMIChatColor.stripColor(secondLine))) {
+		plugin.getComplement().setLine(event, 1, convert(secondLine));
 		break;
 	    }
 	}
@@ -350,14 +351,22 @@ public class JobsListener implements Listener {
     @EventHandler(priority = EventPriority.MONITOR, ignoreCancelled = true)
     public void onWorldLoad(WorldLoadEvent event) {
 	PluginManager pm = plugin.getServer().getPluginManager();
-	if (pm.getPermission("jobs.world." + event.getWorld().getName().toLowerCase()) == null)
-	    pm.addPermission(new Permission("jobs.world." + event.getWorld().getName().toLowerCase(), PermissionDefault.TRUE));
+	String name = event.getWorld().getName().toLowerCase();
+	if (pm.getPermission("jobs.world." + name) == null)
+	    pm.addPermission(new Permission("jobs.world." + name, PermissionDefault.TRUE));
     }
 
     @EventHandler(priority = EventPriority.LOW, ignoreCancelled = true)
     public void onCropGrown(final BlockGrowEvent event) {
 	if (Jobs.getGCManager().canPerformActionInWorld(event.getBlock().getWorld())) {
 	    plugin.getServer().getScheduler().scheduleSyncDelayedTask(plugin, () -> Jobs.getBpManager().remove(event.getBlock()), 1L);
+	}
+    }
+
+    @EventHandler(priority = EventPriority.LOW, ignoreCancelled = true)
+    public void onTreeGrown(final StructureGrowEvent event) {
+	if (!event.getBlocks().isEmpty() && Jobs.getGCManager().canPerformActionInWorld(event.getBlocks().get(0).getWorld())) {
+	    plugin.getServer().getScheduler().runTaskLater(plugin, () -> event.getBlocks().forEach(blockState -> Jobs.getBpManager().remove(blockState.getBlock())), 1L);
 	}
     }
 
@@ -452,11 +461,10 @@ public class JobsListener implements Listener {
 	    return;
 
 	boolean shift = false, numberkey = false;
-	ClickType click = event.getClick();
-	if (click == ClickType.SHIFT_LEFT || click == ClickType.SHIFT_RIGHT)
+	if (event.getClick() == ClickType.SHIFT_LEFT || event.getClick() == ClickType.SHIFT_RIGHT)
 	    shift = true;
 
-	if (click == ClickType.NUMBER_KEY)
+	if (event.getClick() == ClickType.NUMBER_KEY)
 	    numberkey = true;
 
 	SlotType slotType = event.getSlotType();

@@ -1,6 +1,5 @@
 package com.gamingmesh.jobs.config;
 
-import java.text.DateFormat;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Calendar;
@@ -54,11 +53,10 @@ public class ScheduleManager {
 	if (BOOSTSCHEDULE.isEmpty())
 	    return false;
 
-	DateFormat dateFormat = new SimpleDateFormat("HH:mm:ss");
-	String currenttime = dateFormat.format(new Date());
+	String currentTime = new SimpleDateFormat("HH:mm:ss").format(new Date());
 	String currentDayName = getWeekDay();
 
-	int current = Integer.parseInt(currenttime.replace(":", ""));
+	int current = Integer.parseInt(currentTime.replace(":", ""));
 
 	for (Schedule one : BOOSTSCHEDULE) {
 
@@ -69,7 +67,7 @@ public class ScheduleManager {
 
 	    if (one.isStarted() && one.getBroadcastInfoOn() < System.currentTimeMillis() && one.getBroadcastInterval() > 0) {
 		one.setBroadcastInfoOn(System.currentTimeMillis() + one.getBroadcastInterval() * 60 * 1000);
-		Jobs.getInstance().getComplement().broadcastMessage(one.getMessageToBroadcast());
+		plugin.getComplement().broadcastMessage(one.getMessageToBroadcast());
 	    }
 
 	    if (((one.isNextDay() && (current >= from && current < until || current >= one.getNextFrom() && current < one.getNextUntil()) && !one
@@ -84,9 +82,9 @@ public class ScheduleManager {
 
 		if (one.isBroadcastOnStart())
 		    if (one.getMessageOnStart().isEmpty())
-			Jobs.getInstance().getComplement().broadcastMessage(Jobs.getLanguage().getMessage("message.boostStarted"));
+			plugin.getComplement().broadcastMessage(Jobs.getLanguage().getMessage("message.boostStarted"));
 		    else
-			Jobs.getInstance().getComplement().broadcastMessage(one.getMessageOnStart());
+			plugin.getComplement().broadcastMessage(one.getMessageOnStart());
 
 		for (Job onejob : one.getJobs()) {
 		    onejob.setBoost(one.getBoost());
@@ -107,9 +105,9 @@ public class ScheduleManager {
 
 		if (one.isBroadcastOnStop())
 		    if (one.getMessageOnStop().isEmpty())
-			Jobs.getInstance().getComplement().broadcastMessage(Jobs.getLanguage().getMessage("message.boostStoped"));
+			plugin.getComplement().broadcastMessage(Jobs.getLanguage().getMessage("message.boostStoped"));
 		    else
-			Jobs.getInstance().getComplement().broadcastMessage(one.getMessageOnStop());
+			plugin.getComplement().broadcastMessage(one.getMessageOnStop());
 
 		for (Job onejob : one.getJobs()) {
 		    onejob.setBoost(new BoostMultiplier());

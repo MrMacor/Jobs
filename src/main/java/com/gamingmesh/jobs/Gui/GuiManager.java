@@ -26,6 +26,12 @@ import com.gamingmesh.jobs.container.JobsPlayer;
 
 public class GuiManager {
 
+    private Jobs plugin;
+
+    public GuiManager(Jobs plugin) {
+	this.plugin = plugin;
+    }
+
     public void openJobsBrowseGUI(final Player player) {
 	List<Job> jobsList = new ArrayList<>();
 	for (Job job : Jobs.getJobs()) {
@@ -108,9 +114,10 @@ public class GuiManager {
 	    } else
 		lore.addAll(Arrays.asList(job.getDescription().split("/n|\\n")));
 
-	    if (job.getMaxSlots() != null)
-		lore.add(Jobs.getLanguage().getMessage("command.info.gui.leftSlots") + ((job.getMaxSlots() - Jobs.getUsedSlots(job)) > 0 ? (job.getMaxSlots() - Jobs
-		    .getUsedSlots(job)) : 0));
+	    if (job.getMaxSlots() != null) {
+		int usedSlots = Jobs.getUsedSlots(job);
+		lore.add(Jobs.getLanguage().getMessage("command.info.gui.leftSlots") + ((job.getMaxSlots() - usedSlots) > 0 ? (job.getMaxSlots() - usedSlots) : 0));
+	    }
 
 	    if (Jobs.getGCManager().ShowActionNames) {
 		lore.add("");
@@ -132,8 +139,8 @@ public class GuiManager {
 
 	    ItemStack guiItem = job.getGuiItem();
 	    ItemMeta meta = guiItem.getItemMeta();
-	    Jobs.getInstance().getComplement().setDisplayName(meta, job.getNameWithColor());
-	    Jobs.getInstance().getComplement().setLore(meta, lore);
+	    plugin.getComplement().setDisplayName(meta, job.getNameWithColor());
+	    plugin.getComplement().setLore(meta, lore);
 	    guiItem.setItemMeta(meta);
 
 	    gui.addButton(new CMIGuiButton(job.getGuiSlot() >= 0 ? job.getGuiSlot() : pos, guiItem) {
@@ -188,7 +195,7 @@ public class GuiManager {
     }
 
     public void openJobsBrowseGUI(Player player, Job job, boolean fromCommand) {
-	Inventory tempInv = Jobs.getInstance().getComplement().createInventory(player, 54, "");
+	Inventory tempInv = plugin.getComplement().createInventory(player, 54, "");
 
 	JobsPlayer jPlayer = Jobs.getPlayerManager().getJobsPlayer(player);
 	Boost boost = Jobs.getPlayerManager().getFinalBonus(jPlayer, job);
@@ -261,8 +268,8 @@ public class GuiManager {
 			continue;
 
 		    ItemMeta meta = guiItem.getItemMeta();
-		    Jobs.getInstance().getComplement().setDisplayName(meta, job.getNameWithColor());
-		    Jobs.getInstance().getComplement().setLore(meta, lore);
+		    plugin.getComplement().setDisplayName(meta, job.getNameWithColor());
+		    plugin.getComplement().setLore(meta, lore);
 		    guiItem.setItemMeta(meta);
 		    tempInv.setItem(i, guiItem.clone());
 
@@ -281,8 +288,8 @@ public class GuiManager {
 	    }
 
 	    ItemMeta meta = guiItem.getItemMeta();
-	    Jobs.getInstance().getComplement().setDisplayName(meta, job.getNameWithColor());
-	    Jobs.getInstance().getComplement().setLore(meta, lore);
+	    plugin.getComplement().setDisplayName(meta, job.getNameWithColor());
+	    plugin.getComplement().setLore(meta, lore);
 	    guiItem.setItemMeta(meta);
 	    tempInv.setItem(i, guiItem.clone());
 	    i++;
@@ -313,7 +320,7 @@ public class GuiManager {
 	    ItemStack back = Jobs.getGCManager().guiBackButton;
 	    ItemMeta meta = back.getItemMeta();
 
-	    Jobs.getInstance().getComplement().setDisplayName(meta, Jobs.getLanguage().getMessage("command.info.gui.back"));
+	    plugin.getComplement().setDisplayName(meta, Jobs.getLanguage().getMessage("command.info.gui.back"));
 	    back.setItemMeta(meta);
 
 	    gui.addButton(new CMIGuiButton(backButton, back) {
@@ -328,7 +335,7 @@ public class GuiManager {
 	ItemStack next = Jobs.getGCManager().guiNextButton;
 	ItemMeta meta = next.getItemMeta();
 
-	Jobs.getInstance().getComplement().setDisplayName(meta, Jobs.getLanguage().getMessage("command.info.gui.next"));
+	plugin.getComplement().setDisplayName(meta, Jobs.getLanguage().getMessage("command.info.gui.next"));
 	next.setItemMeta(meta);
 
 	gui.addButton(new CMIGuiButton(nextButton, next) {
@@ -344,7 +351,7 @@ public class GuiManager {
     }
 
     private void openJobsBrowseGUI(Player player, Job job, List<ActionType> jobsRemained) {
-	Inventory tempInv = Jobs.getInstance().getComplement().createInventory(player, 54, "");
+	Inventory tempInv = plugin.getComplement().createInventory(player, 54, "");
 
 	JobsPlayer jPlayer = Jobs.getPlayerManager().getJobsPlayer(player);
 	Boost boost = Jobs.getPlayerManager().getFinalBonus(jPlayer, job);
@@ -412,8 +419,8 @@ public class GuiManager {
 		    }
 
 		    ItemMeta meta = guiItem.getItemMeta();
-		    Jobs.getInstance().getComplement().setDisplayName(meta, job.getNameWithColor());
-		    Jobs.getInstance().getComplement().setLore(meta, lore);
+		    plugin.getComplement().setDisplayName(meta, job.getNameWithColor());
+		    plugin.getComplement().setLore(meta, lore);
 		    guiItem.setItemMeta(meta);
 		    tempInv.setItem(i, guiItem.clone());
 
@@ -431,8 +438,8 @@ public class GuiManager {
 	    }
 
 	    ItemMeta meta = guiItem.getItemMeta();
-	    Jobs.getInstance().getComplement().setDisplayName(meta, job.getNameWithColor());
-	    Jobs.getInstance().getComplement().setLore(meta, lore);
+	    plugin.getComplement().setDisplayName(meta, job.getNameWithColor());
+	    plugin.getComplement().setLore(meta, lore);
 	    guiItem.setItemMeta(meta);
 	    tempInv.setItem(i, guiItem.clone());
 	    i++;
@@ -463,7 +470,7 @@ public class GuiManager {
 	ItemStack skull = Jobs.getGCManager().guiBackButton;
 	ItemMeta skullMeta = skull.getItemMeta();
 
-	Jobs.getInstance().getComplement().setDisplayName(skullMeta, Jobs.getLanguage().getMessage("command.info.gui.back"));
+	plugin.getComplement().setDisplayName(skullMeta, Jobs.getLanguage().getMessage("command.info.gui.back"));
 	skull.setItemMeta(skullMeta);
 
 	gui.addButton(new CMIGuiButton(backButton, skull) {

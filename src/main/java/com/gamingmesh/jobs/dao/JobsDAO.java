@@ -1194,38 +1194,6 @@ public abstract class JobsDAO {
 	}
     }
 
-    private void updateJobId(Job job) {
-	JobsConnection conn = getConnection();
-	if (conn == null)
-	    return;
-
-	PreparedStatement prestt = null;
-	ResultSet res = null;
-	try {
-	    // Retrieve last id from table instead of generating new one
-	    int jobId = 0;
-	    prestt = conn.prepareStatement("SELECT * FROM `" + DBTables.JobNameTable.getTableName() + "`;");
-	    res = prestt.executeQuery();
-	    while (res.next()) {
-		jobId = res.getInt("id");
-	    }
-	    close(prestt);
-	    close(res);
-
-	    job.setId(jobId + 1);
-
-	    prestt = conn.prepareStatement("UPDATE `" + getJobsTableName() + "` SET `" + JobsTableFields.jobid.getCollumn() + "` = ? WHERE `" + JobsTableFields.job.getCollumn() + "` = ?;");
-	    prestt.setString(1, job.getName());
-	    prestt.setInt(2, job.getId());
-	    prestt.execute();
-	} catch (SQLException e) {
-	    e.printStackTrace();
-	} finally {
-	    close(prestt);
-	    close(res);
-	}
-    }
-
     public synchronized void loadAllJobsNames() {
 	JobsConnection conn = getConnection();
 	if (conn == null)
@@ -1253,7 +1221,7 @@ public abstract class JobsDAO {
 
 	for (Job one : Jobs.getJobs()) {
 	    if (one.getId() == 0)
-		updateJobId(one);
+		recordNewJobName(one);
 	}
     }
 
@@ -1308,8 +1276,7 @@ public abstract class JobsDAO {
      * @return list of all of the names of the jobs the players are part of.
      */
     public synchronized List<JobsDAOData> getAllJobsOffline(String userName) {
-
-	ArrayList<JobsDAOData> jobs = new ArrayList<>();
+	List<JobsDAOData> jobs = new ArrayList<>();
 
 	PlayerInfo info = Jobs.getPlayerManager().getPlayerInfo(userName);
 	if (info == null)
@@ -1478,14 +1445,12 @@ public abstract class JobsDAO {
 	    return;
 	PreparedStatement prest = null;
 	try {
-	    int level = job.getLevel();
-	    Double exp = job.getExperience();
 	    prest = conn.prepareStatement("INSERT INTO `" + getJobsTableName() + "` (`" + JobsTableFields.userid.getCollumn() + "`, `" + JobsTableFields.jobid.getCollumn()
 		+ "`, `" + JobsTableFields.level.getCollumn() + "`, `" + JobsTableFields.experience.getCollumn() + "`, `" + JobsTableFields.job.getCollumn() + "`) VALUES (?, ?, ?, ?, ?);");
 	    prest.setInt(1, jPlayer.getUserId());
 	    prest.setInt(2, job.getJob().getId());
-	    prest.setInt(3, level);
-	    prest.setDouble(4, exp);
+	    prest.setInt(3, job.getLevel());
+	    prest.setDouble(4, job.getExperience());
 	    prest.setString(5, job.getJob().getName());
 	    prest.execute();
 	} catch (SQLException e) {
@@ -1659,7 +1624,6 @@ public abstract class JobsDAO {
 	    return;
 	PreparedStatement prest = null;
 	try {
-	    int level = jp.getLevel();
 	    Double exp = jp.getExperience();
 	    prest = conn.prepareStatement("INSERT INTO `" + DBTables.ArchiveTable.getTableName() + "` (`" + ArchiveTableFields.userid.getCollumn()
 		+ "`, `" + ArchiveTableFields.jobid.getCollumn()
@@ -1670,7 +1634,7 @@ public abstract class JobsDAO {
 		+ "`) VALUES (?, ?, ?, ?, ?, ?);");
 	    prest.setInt(1, jPlayer.getUserId());
 	    prest.setInt(2, job.getId());
-	    prest.setInt(3, level);
+	    prest.setInt(3, jp.getLevel());
 	    prest.setInt(4, exp.intValue());
 	    prest.setLong(5, System.currentTimeMillis());
 	    prest.setString(6, job.getName());
@@ -1715,8 +1679,7 @@ public abstract class JobsDAO {
 		if (info == null)
 		    continue;
 
-		TopList top = new TopList(info, res.getInt("totallvl"), 0);
-		names.add(top);
+		names.add(new TopList(info, res.getInt("totallvl"), 0));
 
 		if (names.size() >= Jobs.getGCManager().JobsTopAmount * 2)
 		    break;
@@ -1760,8 +1723,7 @@ public abstract class JobsDAO {
 		if (info == null)
 		    continue;
 
-		TopList top = new TopList(info, res.getInt(UserTableFields.donequests.getCollumn()), 0);
-		names.add(top);
+		names.add(new TopList(info, res.getInt(UserTableFields.donequests.getCollumn()), 0));
 
 		if (names.size() >= Jobs.getGCManager().JobsTopAmount)
 		    break;
@@ -2322,10 +2284,10 @@ public abstract class JobsDAO {
 	PreparedStatement prestDel = null;
 	ResultSet res = null;
 
-	Long timer = System.currentTimeMillis();
+	long timer = System.currentTimeMillis();
 
 	try {
-	    Long mark = System.currentTimeMillis() - (Jobs.getGCManager().BlockProtectionDays * 24L * 60L * 60L * 1000L);
+	    long mark = System.currentTimeMillis() - (Jobs.getGCManager().BlockProtectionDays * 24L * 60L * 60L * 1000L);
 	    prestDel = conn.prepareStatement("DELETE FROM `" + DBTables.BlocksTable.getTableName() + "` WHERE `" + BlockTableFields.recorded.getCollumn() + "` < ? OR `" +
 		BlockTableFields.resets.getCollumn() + "` < ? AND `" + BlockTableFields.resets.getCollumn() + "` > 0;");
 	    prestDel.setLong(1, mark);
@@ -2371,9 +2333,8 @@ public abstract class JobsDAO {
 		bp.setRecorded(res.getLong(BlockTableFields.recorded.getCollumn()));
 		bp.setAction(DBAction.NONE);
 		i++;
-		ii++;
 
-		if (ii >= 100000) {
+		if (ii++ >= 100000) {
 		    Jobs.consoleMsg("&6[Jobs] Loading (" + i + ") BP");
 		    ii = 0;
 		}
@@ -2442,7 +2403,6 @@ public abstract class JobsDAO {
 
 	    if (i > 0)
 		Jobs.consoleMsg("&e[Jobs] Saved " + i + " new explorer entries.");
-
 	} catch (SQLException e) {
 	    e.printStackTrace();
 	} finally {
@@ -2473,10 +2433,9 @@ public abstract class JobsDAO {
 
 	    for (ExploreRegion worlds : temp.values()) {
 		for (ExploreChunk oneChunk : worlds.getChunks().values()) {
-		    if (oneChunk.getDbId() == -1)
+		    if (oneChunk.getDbId() == -1 || !oneChunk.isUpdated())
 			continue;
-		    if (!oneChunk.isUpdated())
-			continue;
+
 		    prest.setString(1, oneChunk.serializeNames());
 		    prest.setInt(2, oneChunk.getDbId());
 		    prest.addBatch();
@@ -2541,7 +2500,6 @@ public abstract class JobsDAO {
 		} finally {
 		    close(prest2);
 		}
-
 	    }
 
 	} catch (SQLException e) {
@@ -2590,7 +2548,7 @@ public abstract class JobsDAO {
      * @param toplist - toplist by jobs name
      * @return 
      */
-    public ArrayList<TopList> toplist(String jobsname) {
+    public List<TopList> toplist(String jobsname) {
 	return toplist(jobsname, 0);
     }
 
@@ -2599,8 +2557,8 @@ public abstract class JobsDAO {
      * @param toplist - toplist by jobs name
      * @return 
      */
-    public ArrayList<TopList> toplist(String jobsname, int limit) {
-	ArrayList<TopList> jobs = new ArrayList<>();
+    public List<TopList> toplist(String jobsname, int limit) {
+	List<TopList> jobs = new ArrayList<>();
 	JobsConnection conn = getConnection();
 	if (conn == null)
 	    return jobs;

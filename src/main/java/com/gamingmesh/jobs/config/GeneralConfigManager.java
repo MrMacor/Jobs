@@ -39,18 +39,12 @@ import com.gamingmesh.jobs.CMILib.ConfigReader;
 import com.gamingmesh.jobs.CMILib.Version;
 import com.gamingmesh.jobs.container.CurrencyLimit;
 import com.gamingmesh.jobs.container.CurrencyType;
-import com.gamingmesh.jobs.container.Schedule;
 import com.gamingmesh.jobs.resources.jfep.Parser;
 
 public class GeneralConfigManager {
 
     public List<Integer> BroadcastingLevelUpLevels = new ArrayList<>();
     public List<String> FwColors = new ArrayList<>(), DisabledWorldsList = new ArrayList<>();
-    /**
-     * @deprecated use {@link ScheduleManager}
-     */
-    @Deprecated
-    public List<Schedule> BoostSchedule = new ArrayList<>();
 
     public final Map<CMIMaterial, Map<Enchantment, Integer>> whiteListedItems = new HashMap<>();
     private final Map<CurrencyType, CurrencyLimit> currencyLimitUse = new HashMap<>();
@@ -484,12 +478,12 @@ public class GeneralConfigManager {
 	    String ench = null;
 
 	    if (one.contains("=")) {
-		String[] split = one.split("=");
+		String[] split = one.split("=", 2);
 		mName = split[0];
 		ench = split[1];
 	    }
 
-	    String value = ench != null && ench.contains("-") ? ench.split("-")[1] : null;
+	    String value = ench != null && ench.contains("-") ? ench.split("-", 2)[1] : null;
 	    if (value != null && ench != null) {
 		ench = ench.substring(0, ench.length() - (value.length() + 1));
 	    }
@@ -872,14 +866,14 @@ public class GeneralConfigManager {
 	c.addComment("SendTitleMessageWhenMaxLevelReached", "Send title and chat message when a player reached the maximum level in a job.");
 	titleMessageMaxLevelReached = c.get("SendTitleMessageWhenMaxLevelReached", false);
 
-	c.addComment("Sounds", "Sounds", "Extra sounds on some events",
+	c.addComment("Sounds", "Extra sounds on some events",
 	    "All sounds can be found in https://hub.spigotmc.org/javadocs/spigot/org/bukkit/Sound.html");
 	SoundLevelupUse = c.get("Sounds.LevelUp.use", true);
-	SoundLevelupSound = c.get("Sounds.LevelUp.sound", Version.isCurrentLower(Version.v1_9_R1) ? "LEVEL_UP " : "ENTITY_PLAYER_LEVELUP");
+	SoundLevelupSound = c.get("Sounds.LevelUp.sound", Version.isCurrentLower(Version.v1_9_R1) ? "LEVEL_UP " : "ENTITY_PLAYER_LEVELUP").toUpperCase();
 	SoundLevelupVolume = c.get("Sounds.LevelUp.volume", 1);
 	SoundLevelupPitch = c.get("Sounds.LevelUp.pitch", 3);
 	SoundTitleChangeUse = c.get("Sounds.TitleChange.use", true);
-	SoundTitleChangeSound = c.get("Sounds.TitleChange.sound", Version.isCurrentLower(Version.v1_9_R1) ? "LEVEL_UP " : "ENTITY_PLAYER_LEVELUP");
+	SoundTitleChangeSound = c.get("Sounds.TitleChange.sound", Version.isCurrentLower(Version.v1_9_R1) ? "LEVEL_UP " : "ENTITY_PLAYER_LEVELUP").toUpperCase();
 	SoundTitleChangeVolume = c.get("Sounds.TitleChange.volume", 1);
 	SoundTitleChangePitch = c.get("Sounds.TitleChange.pitch", 3);
 
@@ -890,12 +884,12 @@ public class GeneralConfigManager {
 	UseRandom = c.get("Fireworks.LevelUp.Random", true);
 	UseFlicker = c.get("Fireworks.LevelUp.flicker", true);
 	UseTrail = c.get("Fireworks.LevelUp.trail", true);
-	c.addComment("Fireworks.LevelUp.type", "Firework types",
+	c.addComment("Fireworks.LevelUp.type", "Firework type",
 	    "All types can be found in https://hub.spigotmc.org/javadocs/bukkit/org/bukkit/FireworkEffect.Type.html");
-	FireworkType = c.get("Fireworks.LevelUp.type", "STAR");
+	FireworkType = c.get("Fireworks.LevelUp.type", "STAR").toUpperCase();
 	FwColors = c.get("Fireworks.LevelUp.colors", Arrays.asList("230,0,0", "0,90,0", "0,0,104"));
 	FireworkPower = c.get("Fireworks.LevelUp.power", 1);
-	c.addComment("Fireworks.LevelUp.ShootTime", "Fire shooting time in ticks.", "Example: 20 tick = 1 second");
+	c.addComment("Fireworks.LevelUp.ShootTime", "Fire shooting time in ticks.", "20 tick = 1 second");
 	ShootTime = c.get("Fireworks.LevelUp.ShootTime", 20);
 
 	c.addComment("Signs", "You can disable this to save SMALL amount of server resources");
