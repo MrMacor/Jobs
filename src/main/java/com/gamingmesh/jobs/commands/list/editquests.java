@@ -49,7 +49,7 @@ public class editquests implements Cmd {
 
 		for (Job one : Jobs.getJobs()) {
 		    RawMessage rm = new RawMessage();
-		    rm.add(Jobs.getLanguage().getMessage("command.editquests.help.list.jobs", "%jobname%", one.getNameWithColor()),
+		    rm.add(Jobs.getLanguage().getMessage("command.editquests.help.list.jobs", "%jobname%", one.getJobDisplayName()),
 			one.getName(), "jobs editquests list " + one.getName());
 		    rm.show(sender);
 		}
@@ -133,7 +133,7 @@ public class editquests implements Cmd {
 			String objName = target.toLowerCase().replace('_', ' ');
 			objName = Character.toUpperCase(objName.charAt(0)) + objName.substring(1);
 			if (o != null)
-			    objName = Jobs.getNameTranslatorManager().Translate(objName, o.getAction(), o.getTargetId(),
+			    objName = Jobs.getNameTranslatorManager().translate(objName, o.getAction(), o.getTargetId(),
 				o.getTargetMeta(), target);
 			objName = org.bukkit.ChatColor.translateAlternateColorCodes('&', objName);
 
@@ -594,7 +594,7 @@ public class editquests implements Cmd {
 
 	if (job != null) {
 	    rm = new RawMessage();
-	    rm.addText(Jobs.getLanguage().getMessage("command.editquests.help.list.jobs", "%jobname%", job.getNameWithColor()))
+	    rm.addText(Jobs.getLanguage().getMessage("command.editquests.help.list.jobs", "%jobname%", job.getJobDisplayName()))
 		.addHover(job.getName()).addCommand("jobs editquests list " + job.getName());
 	    rm.show(player);
 	}
