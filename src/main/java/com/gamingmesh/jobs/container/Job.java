@@ -328,12 +328,20 @@ public class Job {
     }
 
     /**
-     * Returns the full job name
+     * Returns the name of this job
      * 
-     * @return the full job name
+     * @return the name of this job
      */
     public String getName() {
+	return jobName;
+    }
+
+    public String getJobFullName() {
 	return fullName;
+    }
+
+    public String getJobDisplayName() {
+	return jobDisplayName == null ? jobColour + fullName : jobDisplayName;
     }
 
     /**
@@ -345,15 +353,6 @@ public class Job {
     @Deprecated
     public String getNameWithColor() {
 	return jobColour + fullName;
-    }
-
-    /**
-     * Returns the job name retrieved from the config
-     * 
-     * @return the job key name from config section
-     */
-    public String getJobKeyName() {
-	return jobName;
     }
 
     /**
@@ -682,10 +681,6 @@ public class Job {
     @Override
     public boolean equals(Object obj) {
 	return obj instanceof Job && isSame((Job) obj);
-    }
-
-    public String getJobDisplayName() {
-	return jobDisplayName == null ? jobColour + fullName : jobDisplayName;
     }
 
     public void setJobDisplayName(String jobDisplayName) {
